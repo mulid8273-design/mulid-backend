@@ -4,19 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mulid Whisper + GPT Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1, h2 { color: #333; }
+        button { margin-top: 5px; margin-bottom: 15px; }
+        p { background: #f4f4f4; padding: 10px; border-radius: 5px; min-height: 20px; }
+        textarea { width: 100%; }
+    </style>
 </head>
 <body>
     <h1>Mulid Backend Test</h1>
 
     <h2>1️⃣ 오디오 파일 업로드 (Whisper)</h2>
     <input type="file" id="audioFile" accept="audio/*">
+    <br>
     <button id="whisperBtn">Whisper 변환</button>
     <p id="whisperResult"></p>
 
     <h2>2️⃣ GPT 테스트</h2>
-    <textarea id="gptInput" rows="4" cols="50" placeholder="텍스트 입력"></textarea>
+    <textarea id="gptInput" rows="4" placeholder="텍스트 입력"></textarea>
+    <br>
     <button id="gptBtn">GPT 변환</button>
     <p id="gptResult"></p>
 
+    <script>
+        const backendURL = "https://mulid-backend.onrender.com";
+
+        // Whisper 변환
+        document.getElementById("whisperBtn").addEventListener("click", async () => {
+            const fileInput = document.getElementById("audioFile");
+            if (!fileInput.files[0]) {
+                alert("오디오 파일을 선택해주세요.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            document.getElementById("whisperResult").textContent = "변환 중...";
+
+            try {
+                const res = await fetch(`${backendURL}/api/whisper`, {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await res.json();
+                document.getElementById("whisperResult").textContent = data.text || "변환 실패";
+            } catch (err) {
+                console.error(err);
+                document.getElementById("whisperResult").textContent = "오류 발생";
+            }
+        });
+
+        // GPT 변환
+        document.getElementById("gptBtn").addEventListener("click", async () => {
+            const prompt = document.getElementById("gptInput").value;
+            if (!prompt) {
+                alert("텍스트를 입력해주세요.");
+                return;
+            }
+
+            document.getElementById("gptResult").textContent = "GPT 처리 중...";
+
+            try {
+                const res = await fetch(`${backendURL}/api/gpt`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt })
+                });
+                const data = await res.json();
+                document.getElementById("gptResult").textContent = data.text || "변환 실패";
+            } catch (err) {
+                console.error(err);
+                document.getElementById("gptResult").textContent = "오류 발생";
+            }
+        });
+    </script>
 </body>
 </html>
